@@ -1,12 +1,10 @@
-
 ## Задание
 
 Есть небольшой новостной сайт.
 
 ![Начальное состояние](./res/base.png)
 
-Было решено к статьям добавить тематические резделы,
-к которым они относятся, и отображать их у каждой новости в виде списка тегов.
+Было решено к статьям добавить тематические резделы, к которым они относятся, и отображать их у каждой новости в виде списка тегов.
 
 ![Вывод тегов разделов](./res/with_tags.png)
 
@@ -19,14 +17,21 @@
 
 ![Админка](./res/admin.gif)
 
+## Примечание
+
+Вам не надо менять шаблон! Ваша задача реализовать модели и логику так, чтобы текущий шаблон заработал. Для этого внимательно посмотрите на добавленные строки для тегов:
+
+```django
+{% for scope in article.scopes.all %}
+    <span class="badge {% if scope.is_main %}badge-primary{% else %}badge-secondary{% endif %}">{{ scope.tag.name }}</span>
+{% endfor %}
+```
 
 ## Подсказки
-
 
 Чтобы реализовать на странице редактирования объекта
 возможность редактировать связи через таблицу многие-ко-многим,
 в админке используйте свойство `inlines`:
-
 
 ```python
 from django.contrib import admin
@@ -44,17 +49,12 @@ class ObjectAdmin(admin.ModelAdmin):
 ```
 
 Вместо `Object` должна быть модель, имеющая связь многие-ко-многим,
-а вместо `Relationship` должна быть модель связи, указанная как `through` для связи (Подробнее: https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ManyToManyField.through).
+а вместо `Relationship` должна быть модель связи, указанная как `through` для связи (Подробнее: https://docs.djangoproject.com/en/3.1/ref/models/fields/#django.db.models.ManyToManyField.through).
 Все остальное django реализует автоматически.
 
 Однако в этой задаче вам потребуется добавить дополнительную проверку при сохранении объекта.
-Для этого в объекте Inline'а можно переопределить атрибут `formset`, 
-который должен указывать на специальный класс типа `BaseInlineFormSet`, нужный для обработки
-списка однотипных форм (каждая для своей связи).
-Подробнее про работу с формами будет рассмотрено в следующих лекциях,
-а в этой задаче просто воспользуйтесь следующим примером с переопределением метода `clean`,
-указанного в качестве `formset` класса:
-
+Для этого в объекте Inline'а можно переопределить атрибут `formset`, который должен указывать на специальный класс типа `BaseInlineFormSet`, нужный для обработки списка однотипных форм (каждая для своей связи).
+Воспользуйтесь следующим примером с переопределением метода `clean`, указанного в качестве `formset` класса:
 
 ```python
 from django.contrib import admin
@@ -87,6 +87,17 @@ class ObjectAdmin(admin.ModelAdmin):
     inlines = [RelationshipInline]
 ```
 
+Для упорядочивания моделей по умолчанию удобно воспользоваться свойством `Meta` класса `ordering`:
+
+```python
+class Article(models.Model):
+    ...
+
+    class Meta:
+        verbose_name = 'Статья'
+        verbose_name_plural = 'Статьи'
+        ordering = ['-published_at']
+```
 
 ## Документация по проекту
 
@@ -96,30 +107,6 @@ class ObjectAdmin(admin.ModelAdmin):
 
 ```bash
 pip install -r requirements.txt
-```
-
-Создать файл с локальными настройками `app/settings_local.py`
-и задать туда обязательные параметры:
-
-* SECRET_KEY - секретная строка
-* DATABASES - подключение к базе данных (`'default'`)
-
-Например:
-
-```python
-import os
-from .settings import BASE_DIR
-
-SECRET_KEY = 'd+mw&mscg5i&tx+#@bf+6m%e+d5z!u#!n%z-^o9u7y1felv2o&'
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'netology_homework_db',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
-}
 ```
 
 Провести миграцию:
@@ -133,7 +120,6 @@ python manage.py migrate
 ```bash
 python manage.py loaddata articles.json
 ```
-
 
 Запустить отладочный веб-сервер проекта:
 

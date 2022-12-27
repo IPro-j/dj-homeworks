@@ -1,16 +1,17 @@
 from django.db import models
 
 
-class Article(models.Model):
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.IntegerField()
+    category = models.CharField(max_length=50)
 
-    title = models.CharField(max_length=256, verbose_name='Название')
-    text = models.TextField(verbose_name='Текст')
-    published_at = models.DateTimeField(verbose_name='Дата публикации')
-    image = models.ImageField(null=True, blank=True, verbose_name='Изображение',)
 
-    class Meta:
-        verbose_name = 'Статья'
-        verbose_name_plural = 'Статьи'
+class Order(models.Model):
+    product = models.ManyToManyField(Product, related_name='orders')
 
-    def __str__(self):
-        return self.title
+
+class OrderPosition(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='positions')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='positions')
+    quantity = models.IntegerField()
