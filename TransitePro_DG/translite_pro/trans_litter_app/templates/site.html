@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Транслитерация текста</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 70px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 3px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>Транслитерация текста с русского языка на латиницу</h1>
+
+    <div class="input-group">
+        <label for="russian-text">Введите текст на русском</label>
+        <input type="text" id="russian-text" placeholder="Текст на русском">
+    </div>
+
+    <div class="input-group">
+        <label for="latin-text">Текст после транслитерации:</label>
+        <input type="text" id="latin-text" readonly placeholder="Здесь появится транслитерация">
+    </div>
+
+    <script>
+        const russianInput = document.getElementById('russian-text');
+        const latinOutput = document.getElementById('latin-text');
+
+        russianInput.addEventListener('input', function(e) {
+            const text = e.target.value;
+
+            if (text.trim() === '') {
+                latinOutput.value = '';
+                return;
+            }
+
+            fetch('/api/transliterate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({text: text})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    latinOutput.value = 'Ошибка: ' + data.error;
+                } else {
+                    latinOutput.value = data.transliterated;
+                }
+            })
+            .catch(error => {
+                latinOutput.value = 'Ошибка сети: ' + error;
+            });
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
